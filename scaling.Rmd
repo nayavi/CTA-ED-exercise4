@@ -1,6 +1,6 @@
 ---
 title: "CTA-ED Exercise 4: Scaling techniques"
-author: "[Your full name here]"
+author: "Nayah Thu"
 date: "6/03/2024"
 output: html_document
 ---
@@ -25,7 +25,7 @@ library(kableExtra)
 library(dplyr)
 library(quanteda) # includes functions to implement Lexicoder
 library(quanteda.textmodels) # for estimating similarity and complexity measures
-library(quanteda.textplots) #for visualizing text modelling results
+library(quanteda.textplots)#for visualizing text modelling results
 ```
 
 In this exercise we'll be using the dataset we used for the sentiment analysis exercise. The data were collected from the Twitter accounts of the top eight newspapers in the UK by circulation. The tweets include any tweets by the news outlet from their main account. 
@@ -95,7 +95,7 @@ dfm_newstweets <- dfm_trim(dfm_newstweets,
 dim(dfm_newstweets)
 
 #### estimate the Wordfish model ####
-set.seed(123L)
+set.seed(123L) #what does this do?)
 dfm_newstweets_results <- textmodel_wordfish(dfm_newstweets, 
                                              sparse = TRUE)
 
@@ -167,9 +167,53 @@ kaneko_dfm_study1 <- dfm_trim(kaneko_dfm_study1, min_docfreq = 2, docfreq_type =
 
 ## size of the document-feature matrix
 dim(kaneko_dfm_study1)
+
 ```
 
 ## Exercises
 
 1. Estimate a wordfish model for the @kaneko_estimating_2021 data
+
+```{r ex1}
+
+#### estimate the Wordfish model ####
+set.seed(456L) #set a seed
+dfm_kaneko_results <- textmodel_wordfish(kaneko_dfm_study1, 
+                                             sparse = TRUE) # we apply wordfish to the model 
+
+summary_kaneko<-summary(dfm_kaneko_results) # we create the summary
+
+summary_kaneko_doc.df<-as.data.frame(summary_kaneko$estimated.document.positions)
+
+  mutate(summary_kaneko_doc.df,newspapers = rownames(summary_kaneko_doc.df)) # possibly unecessary
+
+
+```
+
 2. Visualize the results
+
+We can visualise the document level information. Arguably, there are 3 groups of newspapers, replicating the conclusions from Kaneko et al 2021.
+```{r ex2doclevel}
+textplot_scale1d(dfm_kaneko_results)
+```
+
+
+We cannot easily visualise a word cloud with Kanji, but we can see the different relevant features to facilitate further Japanese language research.
+```{r ex2wordfreqinfo}
+
+head(kaneko_dfm_study1)# here we see that there are Kanji, and hence we cannot visualise them. However, we can look at th
+
+features_k <- dfm_kaneko_results[["features"]]
+
+betas_k<- dfm_kaneko_results[["beta"]] # this takes the column showing ideological relevance (from the array hence two bracket sets)
+
+feat_betas_k <- as.data.frame(cbind(features_k, betas))
+feat_betas_k$betas <- as.numeric(feat_betas_k$betas)
+
+feat_betas_k %>%
+  arrange(desc(betas)) %>%
+  top_n(20) %>% 
+  kbl() %>%
+  kable_styling(bootstrap_options = "striped")
+
+```
